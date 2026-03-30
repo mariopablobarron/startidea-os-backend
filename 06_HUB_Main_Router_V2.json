@@ -1,0 +1,82 @@
+{
+  "name": "HUB_Main_Router_V2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message", "callback_query"]
+      },
+      "id": "telegram_main",
+      "name": "Telegram_Listener",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [ 0, 0 ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.message ? $json.message.text : ($json.callback_query ? $json.callback_query.data : '') }}",
+        "rules": {
+          "rules": [
+            { "operation": "startsWith", "value2": "/idea" },
+            { "operation": "startsWith", "value2": "validar_idea:" },
+            { "operation": "startsWith", "value2": "/accion" },
+            { "operation": "startsWith", "value2": "/estado" },
+            { "operation": "startsWith", "value2": "/mis_tareas" }
+          ]
+        }
+      },
+      "id": "switch_v2",
+      "name": "Enrutador_Principal",
+      "type": "n8n-nodes-base.switch",
+      "position": [ 220, 0 ]
+    },
+    {
+      "parameters": { "workflowId": "SELECCIONE_SUB_IDEA" },
+      "id": "r_idea",
+      "name": "Route_Idea",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [ 500, -200 ]
+    },
+    {
+      "parameters": { "workflowId": "SELECCIONE_SUB_VALIDACION" },
+      "id": "r_val",
+      "name": "Route_Validacion",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [ 500, -100 ]
+    },
+    {
+      "parameters": { "workflowId": "SELECCIONE_SUB_ACCION" },
+      "id": "r_acc",
+      "name": "Route_Accion",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [ 500, 0 ]
+    },
+    {
+      "parameters": { "workflowId": "SELECCIONE_SUB_ESTADO" },
+      "id": "r_est",
+      "name": "Route_Estado",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [ 500, 100 ]
+    },
+    {
+      "parameters": { "workflowId": "SELECCIONE_SUB_MIS_TAREAS" },
+      "id": "r_tar",
+      "name": "Route_Mis_Tareas",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [ 500, 200 ]
+    }
+  ],
+  "connections": {
+    "Telegram_Listener": {
+      "main": [ [ { "node": "Enrutador_Principal", "type": "main", "index": 0 } ] ]
+    },
+    "Enrutador_Principal": {
+      "main": [
+        [ { "node": "Route_Idea", "type": "main", "index": 0 } ],
+        [ { "node": "Route_Validacion", "type": "main", "index": 0 } ],
+        [ { "node": "Route_Accion", "type": "main", "index": 0 } ],
+        [ { "node": "Route_Estado", "type": "main", "index": 0 } ],
+        [ { "node": "Route_Mis_Tareas", "type": "main", "index": 0 } ]
+      ]
+    }
+  }
+}

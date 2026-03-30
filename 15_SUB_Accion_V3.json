@@ -1,0 +1,68 @@
+{
+  "name": "SUB_Accion_V3",
+  "nodes": [
+    { "parameters": {}, "id": "t_a3", "name": "Execute Workflow Trigger", "type": "n8n-nodes-base.executeWorkflowTrigger", "position": [0,0] },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "chat_id", "value": "={{ $json.message.chat.id }}" },
+            { "name": "msg_id", "value": "={{ $json.message.message_id }}" },
+            { "name": "raw_text", "value": "={{ $json.message.text }}" }
+          ]
+        }
+      },
+      "id": "s_a3",
+      "name": "Paso_1_Params",
+      "type": "n8n-nodes-base.set",
+      "position": [200,0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $('Paso_1_Params').item.json.raw_text;\nconst match = text.match(/^\\/accion\\s+(alta|media|baja)\\s+(.*)/i);\nlet prioridad = 'media';\nlet titulo = text.replace(/^\\/accion\\s*/i, '');\nif (match) {\n  prioridad = match[1].toLowerCase();\n  titulo = match[2];\n}\nreturn { json: { prioridad: prioridad, titulo: titulo } };"
+      },
+      "id": "c_a3",
+      "name": "Parsear_Prioridad",
+      "type": "n8n-nodes-base.code",
+      "position": [400,0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO core.tasks (titulo, prioridad, asignado_a, estado, origin_msg_id) VALUES ($1, $2, 'ceo', 'todo', $3) ON CONFLICT (origin_msg_id) DO NOTHING RETURNING id, prioridad;",
+        "options": {
+          "queryParameters": "={{ $('Parsear_Prioridad').item.json.titulo }}, {{ $('Parsear_Prioridad').item.json.prioridad }}, {{ $('Paso_1_Params').item.json.msg_id }}"
+        }
+      },
+      "id": "db_a3",
+      "name": "Insert_BD_Accion",
+      "type": "n8n-nodes-base.postgres",
+      "position": [600,0]
+    },
+    {
+      "parameters": { "conditions": { "string": [ { "value1": "={{ $json[0]?.id }}", "operation": "isNotEmpty" } ] } },
+      "id": "if_a3",
+      "name": "If_Inserted",
+      "type": "n8n-nodes-base.if",
+      "position": [800,0]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Paso_1_Params').item.json.chat_id }}",
+        "text": "=⚡ **Acción Rápida Creada (#{{ $('Insert_BD_Accion').item.json[0].id }})**\\n*\"{{ $('Parsear_Prioridad').item.json.titulo }}\"*\\n🔥 Prioridad: `{{ $('Insert_BD_Accion').item.json[0].prioridad }}`"
+      },
+      "id": "tg_a3",
+      "name": "Telegram_Confirm",
+      "type": "n8n-nodes-base.telegram",
+      "position": [1000,-100]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [ [ { "node": "Paso_1_Params", "type": "main", "index": 0 } ] ] },
+    "Paso_1_Params": { "main": [ [ { "node": "Parsear_Prioridad", "type": "main", "index": 0 } ] ] },
+    "Parsear_Prioridad": { "main": [ [ { "node": "Insert_BD_Accion", "type": "main", "index": 0 } ] ] },
+    "Insert_BD_Accion": { "main": [ [ { "node": "If_Inserted", "type": "main", "index": 0 } ] ] },
+    "If_Inserted": { "main": [ [ { "node": "Telegram_Confirm", "type": "main", "index": 0 } ] ] }
+  }
+}

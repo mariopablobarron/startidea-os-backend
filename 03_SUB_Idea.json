@@ -1,0 +1,87 @@
+{
+  "name": "SUB_Idea",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger_sub",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [ 0, 0 ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "prompt_sistema", "value": "Eres Startidea. Estructura la idea en JSON: {\"titulo\": \"resumen brebe\", \"descripcion\": \"detalle\", \"categoria\": \"Negocio/Producto/Marketing\", \"accion_sugerida\": \"accion tactica 1\"}" },
+            { "name": "texto_usuario", "value": "={{ $json.message.text.replace(/^\\/idea\\s*/, '') }}" },
+            { "name": "user_id", "value": "={{ $json.message.from.id }}" },
+            { "name": "chat_id", "value": "={{ $json.message.chat.id }}" }
+          ]
+        }
+      },
+      "id": "set_params",
+      "name": "Set_Preparar_LLM",
+      "type": "n8n-nodes-base.set",
+      "position": [ 220, 0 ]
+    },
+    {
+      "parameters": {
+        "workflowId": "SELECCIONAR_MANUALMENTE_SYS_LLM_CORE"
+      },
+      "id": "call_llm",
+      "name": "Llamar_LLM_Core",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [ 440, 0 ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO core.ideas (user_id, raw_input, titulo, descripcion, categoria, accion_sugerida) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;",
+        "options": {
+          "queryParameters": "={{ $('Set_Preparar_LLM').item.json.user_id }}, {{ $('Set_Preparar_LLM').item.json.texto_usuario }}, {{ $json.payload.titulo }}, {{ $json.payload.descripcion }}, {{ $json.payload.categoria }}, {{ $json.payload.accion_sugerida }}"
+        }
+      },
+      "id": "insert_db",
+      "name": "Insertar_BD_Idea",
+      "type": "n8n-nodes-base.postgres",
+      "position": [ 660, 0 ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set_Preparar_LLM').item.json.chat_id }}",
+        "text": "=💡 **{{ $('Llamar_LLM_Core').item.json.payload.titulo }}**\\n📌 Acción: {{ $('Llamar_LLM_Core').item.json.payload.accion_sugerida }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  { "text": "Validar y crear Tarea 🚀", "callback_data": "=validar_idea:{{ $json[0].id }}" }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "send_tg",
+      "name": "Boton_Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [ 880, 0 ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [ [ { "node": "Set_Preparar_LLM", "type": "main", "index": 0 } ] ]
+    },
+    "Set_Preparar_LLM": {
+      "main": [ [ { "node": "Llamar_LLM_Core", "type": "main", "index": 0 } ] ]
+    },
+    "Llamar_LLM_Core": {
+      "main": [ [ { "node": "Insertar_BD_Idea", "type": "main", "index": 0 } ] ]
+    },
+    "Insertar_BD_Idea": {
+      "main": [ [ { "node": "Boton_Telegram", "type": "main", "index": 0 } ] ]
+    }
+  }
+}

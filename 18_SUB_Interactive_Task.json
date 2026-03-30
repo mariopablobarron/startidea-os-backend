@@ -1,0 +1,96 @@
+{
+  "name": "SUB_Interactive_Task",
+  "nodes": [
+    { "parameters": {}, "id": "t_it", "name": "Execute Workflow Trigger", "type": "n8n-nodes-base.executeWorkflowTrigger", "position": [0,0] },
+    {
+      "parameters": { "operation": "answerCallbackQuery", "queryId": "={{ $json.callback_query.id }}", "text": "Procesando estado de tarea..." },
+      "id": "ans_it", "name": "Answer_Callback", "type": "n8n-nodes-base.telegram", "position": [200,0]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "action", "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.data.split(':')[0] }}" },
+            { "name": "task_id", "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.data.split(':')[1] }}" },
+            { "name": "chat_id", "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.message.chat.id }}" },
+            { "name": "msg_id", "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.message.message_id }}" }
+          ]
+        }
+      },
+      "id": "s_it", "name": "Set_Action_Id", "type": "n8n-nodes-base.set", "position": [400,0]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.action }}",
+        "rules": {
+          "rules": [
+            { "operation": "equals", "value2": "done_task" },
+            { "operation": "equals", "value2": "postpone_task" }
+          ]
+        }
+      },
+      "id": "sw_it", "name": "Switch_Action", "type": "n8n-nodes-base.switch", "position": [600,0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE core.tasks SET estado = 'done' WHERE id = $1 RETURNING id;",
+        "options": { "queryParameters": "={{ $('Set_Action_Id').item.json.task_id }}" }
+      },
+      "id": "db_d1", "name": "Postgres_Set_Done", "type": "n8n-nodes-base.postgres", "position": [850,-100]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE core.tasks SET estado = 'todo', updated_at = now() WHERE id = $1 RETURNING id;",
+        "options": { "queryParameters": "={{ $('Set_Action_Id').item.json.task_id }}" }
+      },
+      "id": "db_p1", "name": "Postgres_Set_Postpone", "type": "n8n-nodes-base.postgres", "position": [850,150]
+    },
+    {
+      "parameters": {
+        "operation": "editMessageReplyMarkup",
+        "chatId": "={{ $('Set_Action_Id').item.json.chat_id }}",
+        "messageId": "={{ $('Set_Action_Id').item.json.msg_id }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": { "rows": [] }
+      },
+      "id": "rm_bt", "name": "Remover_Botones_Done", "type": "n8n-nodes-base.telegram", "position": [1050,-100]
+    },
+    {
+      "parameters": {
+        "operation": "editMessageReplyMarkup",
+        "chatId": "={{ $('Set_Action_Id').item.json.chat_id }}",
+        "messageId": "={{ $('Set_Action_Id').item.json.msg_id }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": { "rows": [] }
+      },
+      "id": "rm_bt2", "name": "Remover_Botones_Postpone", "type": "n8n-nodes-base.telegram", "position": [1050,150]
+    },
+    {
+      "parameters": { "chatId": "={{ $('Set_Action_Id').item.json.chat_id }}", "text": "=🎉 **Tarea Completada**\\nHas cerrado la tarea #{{ $('Set_Action_Id').item.json.task_id }}." },
+      "id": "tg_d1", "name": "Telegram_Conf_Done", "type": "n8n-nodes-base.telegram", "position": [1250,-100]
+    },
+    {
+      "parameters": { "chatId": "={{ $('Set_Action_Id').item.json.chat_id }}", "text": "=⏱️ **Tarea Pospuesta**\\nLa tarea #{{ $('Set_Action_Id').item.json.task_id }} vuelve a la cola priorizada." },
+      "id": "tg_p1", "name": "Telegram_Conf_Postpone", "type": "n8n-nodes-base.telegram", "position": [1250,150]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [ [ { "node": "Answer_Callback", "type": "main", "index": 0 } ] ] },
+    "Answer_Callback": { "main": [ [ { "node": "Set_Action_Id", "type": "main", "index": 0 } ] ] },
+    "Set_Action_Id": { "main": [ [ { "node": "Switch_Action", "type": "main", "index": 0 } ] ] },
+    "Switch_Action": {
+      "main": [
+        [ { "node": "Postgres_Set_Done", "type": "main", "index": 0 } ],
+        [ { "node": "Postgres_Set_Postpone", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Postgres_Set_Done": { "main": [ [ { "node": "Remover_Botones_Done", "type": "main", "index": 0 } ] ] },
+    "Remover_Botones_Done": { "main": [ [ { "node": "Telegram_Conf_Done", "type": "main", "index": 0 } ] ] },
+    "Postgres_Set_Postpone": { "main": [ [ { "node": "Remover_Botones_Postpone", "type": "main", "index": 0 } ] ] },
+    "Remover_Botones_Postpone": { "main": [ [ { "node": "Telegram_Conf_Postpone", "type": "main", "index": 0 } ] ] }
+  }
+}

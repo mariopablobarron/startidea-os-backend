@@ -1,0 +1,70 @@
+{
+  "name": "SUB_Accion",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trig_acc",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "titulo_tarea", "value": "={{ $json.message.text.replace(/^\\/accion\\s*/, '') }}" },
+            { "name": "msg_id", "value": "={{ $json.message.message_id }}" },
+            { "name": "chat_id", "value": "={{ $json.message.chat.id }}" }
+          ]
+        }
+      },
+      "id": "set_acc",
+      "name": "Set_Accion",
+      "type": "n8n-nodes-base.set",
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO core.tasks (titulo, asignado_a, estado, origin_msg_id) VALUES ($1, 'ceo', 'todo', $2) ON CONFLICT (origin_msg_id) DO NOTHING RETURNING id;",
+        "options": {
+          "queryParameters": "={{ $('Set_Accion').item.json.titulo_tarea }}, {{ $('Set_Accion').item.json.msg_id }}"
+        }
+      },
+      "id": "db_acc",
+      "name": "Postgres_Insert",
+      "type": "n8n-nodes-base.postgres",
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json[0]?.id }}", "operation": "isNotEmpty" }
+          ]
+        }
+      },
+      "id": "if_acc",
+      "name": "If_Inserted",
+      "type": "n8n-nodes-base.if",
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set_Accion').item.json.chat_id }}",
+        "text": "=⚡ **Acción Directa Registrada**\\nTarea #{{ $('Postgres_Insert').item.json[0].id }}: *\"{{ $('Set_Accion').item.json.titulo_tarea }}\"*\\nEstado: `todo` | Asignada: `ceo`"
+      },
+      "id": "tg_acc",
+      "name": "Telegram_Confirm",
+      "type": "n8n-nodes-base.telegram",
+      "position": [880, -100]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [ [ { "node": "Set_Accion", "type": "main", "index": 0 } ] ] },
+    "Set_Accion": { "main": [ [ { "node": "Postgres_Insert", "type": "main", "index": 0 } ] ] },
+    "Postgres_Insert": { "main": [ [ { "node": "If_Inserted", "type": "main", "index": 0 } ] ] },
+    "If_Inserted": { "main": [ [ { "node": "Telegram_Confirm", "type": "main", "index": 0 } ] ] }
+  }
+}

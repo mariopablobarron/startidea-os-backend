@@ -1,0 +1,68 @@
+{
+  "name": "SYS_LLM_Core_V4",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger_llm4",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "payload_body",
+              "value": "={{ JSON.stringify({\n  \"model\": \"gpt-4o-mini\",\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": $json.prompt_sistema + \"\\n\\nIMPORTANTE: DEVUELVE ÚNICA Y EXCLUSIVAMENTE UN OBJETO JSON VÁLIDO. NO ESCRIBAS TEXTO ANTES NI DESPUÉS. NO USES BLOQUES DE MARKDOWN (```json). SOLO EL OBJETO { ... }\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": $json.texto_usuario\n    }\n  ]\n}) }}"
+            }
+          ]
+        }
+      },
+      "id": "set_body4",
+      "name": "Set_JSON_Stricto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_body }}"
+      },
+      "id": "http_openai4",
+      "name": "Llamada_LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $input.item.json.choices?.[0]?.message?.content || \"{};\";\nlet payload = {};\n\n// 1. Cirugía: Extraer agresivamente solo el bloque {} ignorando el texto conversacional alrededor\nlet match = raw.match(/\\{[\\s\\S]*\\}/);\nif (match) {\n  raw = match[0];\n}\n\ntry {\n  payload = JSON.parse(raw);\n  \n  // Forzar claves mínimas si el LLM las olvida\n  if (!payload.titulo) payload.titulo = \"Idea Recuperada\";\n  if (!payload.descripcion) payload.descripcion = $('Execute Workflow Trigger').item.json.texto_usuario;\n  if (!payload.categoria) payload.categoria = \"General\";\n  if (!payload.accion_sugerida) payload.accion_sugerida = \"Revisar acción manual\";\n\n} catch(e) {\n  payload = {\n    titulo: \"Fallo Extracción JSON\",\n    descripcion: $('Execute Workflow Trigger').item.json.texto_usuario,\n    categoria: \"Error\",\n    accion_sugerida: \"Depurar salida del LLM\"\n  };\n}\n\nreturn { json: { payload: payload } };"
+      },
+      "id": "code_fb4",
+      "name": "Code_Cirugia_JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [ [ { "node": "Set_JSON_Stricto", "type": "main", "index": 0 } ] ]
+    },
+    "Set_JSON_Stricto": {
+      "main": [ [ { "node": "Llamada_LLM", "type": "main", "index": 0 } ] ]
+    },
+    "Llamada_LLM": {
+      "main": [ [ { "node": "Code_Cirugia_JSON", "type": "main", "index": 0 } ] ]
+    }
+  }
+}
