@@ -1,0 +1,107 @@
+{
+  "name": "SUB_Idea_V4",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trig_i4",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "prompt_sistema",
+              "value": "Eres un Operador Técnico. Recibirás un input del usuario. Tu ÚNICO objetivo es devolver este objeto JSON estricto, sin añadir NINGUNA palabra de saludo, explicación ni comillas markdown. ESTRUCTURA REQUERIDA: {\"titulo\": \"resumen de 5 palabras\", \"descripcion\": \"detalle\", \"categoria\": \"Negocio/Producto/Marketing\", \"accion_sugerida\": \"accion táctica a ejecutar\"}"
+            },
+            {
+              "name": "texto_usuario",
+              "value": "={{ $json.message.text.replace(/^\\/idea\\s*/, '') }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $json.message.from.id }}"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $json.message.chat.id }}"
+            }
+          ]
+        }
+      },
+      "id": "set_i4",
+      "name": "Set_Contexto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "workflowId": "SELECCIONE_SYS_LLM_CORE_V4"
+      },
+      "id": "call_llm4",
+      "name": "Llamar_LLM_V4",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO core.ideas (user_id, raw_input, titulo, descripcion, categoria, accion_sugerida) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;",
+        "options": {
+          "queryParameters": "={{ $('Set_Contexto').item.json.user_id }}, {{ $('Set_Contexto').item.json.texto_usuario }}, {{ $json.payload.titulo }}, {{ $json.payload.descripcion }}, {{ $json.payload.categoria }}, {{ $json.payload.accion_sugerida }}"
+        }
+      },
+      "id": "db_i4",
+      "name": "Insert_BD",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.1,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set_Contexto').item.json.chat_id }}",
+        "text": "=💡 **{{ $('Llamar_LLM_V4').item.json.payload.titulo }}**\\n📌 Acción: {{ $('Llamar_LLM_V4').item.json.payload.accion_sugerida }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Validar y Crear Tarea 🎯",
+                    "callback_data": "=validar_idea:{{ $json[0].id }}"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "tg_i4",
+      "name": "Telegram_Confirm",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [880, 0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [ [ { "node": "Set_Contexto", "type": "main", "index": 0 } ] ]
+    },
+    "Set_Contexto": {
+      "main": [ [ { "node": "Llamar_LLM_V4", "type": "main", "index": 0 } ] ]
+    },
+    "Llamar_LLM_V4": {
+      "main": [ [ { "node": "Insert_BD", "type": "main", "index": 0 } ] ]
+    },
+    "Insert_BD": {
+      "main": [ [ { "node": "Telegram_Confirm", "type": "main", "index": 0 } ] ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+# Startidea OS Gitignored Files
+node_modules/
+.env
+*.log
+*.tmp
+.DS_Store
+id_rsa_vps
+credentials.json
+auth_token.txt
+temp/
+workflows/*.json.bak

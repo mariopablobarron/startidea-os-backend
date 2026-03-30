@@ -1,0 +1,228 @@
+{
+  "name": "HUB_Main_Router_V3",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ]
+      },
+      "id": "telegram_main_v3",
+      "name": "Telegram_Listener",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MU4yoPrZzzfRHbHb",
+          "name": "Telegram_Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.message ? $json.message.text : ($json.callback_query ? $json.callback_query.data : '') }}",
+        "rules": {
+          "rules": [
+            {
+              "operation": "startsWith",
+              "value2": "/idea"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "validar_idea:"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/accion"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/hoy"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/focus"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "done_task:"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "postpone_task:"
+            }
+          ]
+        }
+      },
+      "id": "switch_v3",
+      "name": "Enrutador_Inteligente",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "GKV2gqgdbvMpEaGm"
+      },
+      "id": "r_idea",
+      "name": "Ejecutar_Idea",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "XkPJDpYU1RR30JfV"
+      },
+      "id": "r_val",
+      "name": "Ejecutar_Validacion",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "HbkRL9T7DsoZr3wm"
+      },
+      "id": "r_acc",
+      "name": "Ejecutar_Accion",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "2Ct3D2Oha7nw5pVZ"
+      },
+      "id": "r_hoy",
+      "name": "Ejecutar_Hoy",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "2Ct3D2Oha7nw5pVZ"
+      },
+      "id": "r_foc",
+      "name": "Ejecutar_Focus",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "JGep1ijaQjdEwuI1"
+      },
+      "id": "r_done",
+      "name": "Ejecutar_Interactive_Done",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "JGep1ijaQjdEwuI1"
+      },
+      "id": "r_pos",
+      "name": "Ejecutar_Interactive_Postpone",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Telegram_Listener": {
+      "main": [
+        [
+          {
+            "node": "Enrutador_Inteligente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutador_Inteligente": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar_Idea",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Validacion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Accion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Hoy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Focus",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Interactive_Done",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Interactive_Postpone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "pinData": null,
+  "versionId": null,
+  "triggerCount": 0,
+  "tags": []
+}

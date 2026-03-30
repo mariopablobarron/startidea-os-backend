@@ -1,0 +1,34 @@
+{
+  "name": "SYS_LLM_Core_V3",
+  "nodes": [
+    { "parameters": {}, "id": "trigger_llm3", "name": "Execute Workflow Trigger", "type": "n8n-nodes-base.executeWorkflowTrigger", "position": [0,0] },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    { \"role\": \"system\", \"content\": \"{{$json.prompt_sistema}}\" },\n    { \"role\": \"user\", \"content\": \"{{$json.texto_usuario}}\" }\n  ]\n}"
+      },
+      "id": "http_openai3",
+      "name": "Llamada_LLM_Estrategico",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [200,0]
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = '';\ntry { raw = $input.item.json.choices[0].message.content; } catch(e) {}\nlet payload = {};\ntry {\n  payload = JSON.parse(raw.replace(/```json/gi, '').replace(/```/g, '').trim());\n} catch (e) {\n  payload = {\n    titulo: \"Fallo ML\",\n    descripcion: $('Execute Workflow Trigger').item.json.texto_usuario,\n    categoria: \"Indeterminada\",\n    accion_sugerida: \"Revisar logs\",\n    prioridad_sugerida: \"media\",\n    tipo_tarea: \"operativa\"\n  };\n}\nreturn { json: { payload: payload } };"
+      },
+      "id": "code_fb3",
+      "name": "Code_Payload_Extraction",
+      "type": "n8n-nodes-base.code",
+      "position": [400,0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [ [ { "node": "Llamada_LLM_Estrategico", "type": "main", "index": 0 } ] ] },
+    "Llamada_LLM_Estrategico": { "main": [ [ { "node": "Code_Payload_Extraction", "type": "main", "index": 0 } ] ] }
+  }
+}

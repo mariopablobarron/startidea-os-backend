@@ -1,0 +1,553 @@
+{
+  "updatedAt": "2026-03-30T02:03:14.000Z",
+  "createdAt": "2026-03-28T15:03:55.374Z",
+  "id": "XkPJDpYU1RR30JfV",
+  "name": "SUB_Validacion_Task_V3",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trig_v3",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "answerCallbackQuery",
+        "queryId": "={{ $json.callback_query.id }}",
+        "text": "Procesando transferencia a Task..."
+      },
+      "id": "ans_v3",
+      "name": "Responder_Callback",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        200,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MU4yoPrZzzfRHbHb",
+          "name": "Telegram_Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "idea_id",
+              "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.data.split(':')[1] }}"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.message.chat.id }}"
+            }
+          ]
+        }
+      },
+      "id": "set_v3",
+      "name": "Set_Ids",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE core.ideas SET estado = 'validada' WHERE id = $1 AND estado = 'capturada' RETURNING accion_sugerida, prioridad_sugerida, tipo_tarea_sugerida;",
+        "options": {
+          "queryParameters": "={{ $('Set_Ids').item.json.idea_id }}"
+        }
+      },
+      "id": "db_up3",
+      "name": "Postgres_Actualizar_Idea",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json[0]?.accion_sugerida }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "if_v3",
+      "name": "If_Idea_Validada",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO core.tasks (idea_id, titulo, prioridad, tipo_tarea) VALUES ($1, $2, $3, $4) RETURNING id;",
+        "options": {
+          "queryParameters": "={{ $('Set_Ids').item.json.idea_id }}, {{ $('Postgres_Actualizar_Idea').item.json[0].accion_sugerida }}, {{ $('Postgres_Actualizar_Idea').item.json[0].prioridad_sugerida }}, {{ $('Postgres_Actualizar_Idea').item.json[0].tipo_tarea_sugerida }}"
+        }
+      },
+      "id": "db_ins3",
+      "name": "Postgres_Insertar_Task",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        1000,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "editMessageReplyMarkup",
+        "chatId": "={{ $('Set_Ids').item.json.chat_id }}",
+        "messageId": "={{ $('Execute Workflow Trigger').item.json.callback_query.message.message_id }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": []
+        }
+      },
+      "id": "rem_btn3",
+      "name": "Remover_Boton_Idea",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1200,
+        -100
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MU4yoPrZzzfRHbHb",
+          "name": "Telegram_Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set_Ids').item.json.chat_id }}",
+        "text": "=\ud83d\ude80 **Conversi\u00f3n a Tarea \u00c9xitosa (#{{ $('Postgres_Insertar_Task').item.json[0].id }})**\\n*\"{{ $('Postgres_Actualizar_Idea').item.json[0].accion_sugerida }}\"*\\n\ud83d\udd25 Prioridad Heredada: `{{ $('Postgres_Actualizar_Idea').item.json[0].prioridad_sugerida }}`",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "\u2705 Done",
+                    "callback_data": "=done_task:{{ $('Postgres_Insertar_Task').item.json[0].id }}"
+                  },
+                  {
+                    "text": "\ud83d\udd04 Posponer",
+                    "callback_data": "=postpone_task:{{ $('Postgres_Insertar_Task').item.json[0].id }}"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "tg_conf3",
+      "name": "Telegram_Send_Confirmacion",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1400,
+        -100
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MU4yoPrZzzfRHbHb",
+          "name": "Telegram_Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Responder_Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder_Callback": {
+      "main": [
+        [
+          {
+            "node": "Set_Ids",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set_Ids": {
+      "main": [
+        [
+          {
+            "node": "Postgres_Actualizar_Idea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres_Actualizar_Idea": {
+      "main": [
+        [
+          {
+            "node": "If_Idea_Validada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If_Idea_Validada": {
+      "main": [
+        [
+          {
+            "node": "Postgres_Insertar_Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres_Insertar_Task": {
+      "main": [
+        [
+          {
+            "node": "Remover_Boton_Idea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remover_Boton_Idea": {
+      "main": [
+        [
+          {
+            "node": "Telegram_Send_Confirmacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "aa56ded0-7d6b-48fc-ba64-5b6766aa9c26",
+  "activeVersionId": "aa56ded0-7d6b-48fc-ba64-5b6766aa9c26",
+  "versionCounter": 6,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T01:57:36.302Z",
+      "createdAt": "2026-03-30T01:57:36.302Z",
+      "role": "workflow:owner",
+      "workflowId": "XkPJDpYU1RR30JfV",
+      "projectId": "QaMRMGJEzY5PYBIg",
+      "project": {
+        "updatedAt": "2026-03-29T23:42:43.691Z",
+        "createdAt": "2026-03-29T23:42:43.691Z",
+        "id": "QaMRMGJEzY5PYBIg",
+        "name": "mario sanchez <mario@startidea.es>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1f14cd28-5281-4da7-ad9f-65cbac0d8b14"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-29T23:42:44.155Z",
+    "createdAt": "2026-03-29T23:42:44.155Z",
+    "versionId": "aa56ded0-7d6b-48fc-ba64-5b6766aa9c26",
+    "workflowId": "XkPJDpYU1RR30JfV",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "trig_v3",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "answerCallbackQuery",
+          "queryId": "={{ $json.callback_query.id }}",
+          "text": "Procesando transferencia a Task..."
+        },
+        "id": "ans_v3",
+        "name": "Responder_Callback",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          200,
+          0
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "MU4yoPrZzzfRHbHb",
+            "name": "Telegram_Bot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "keepOnlySet": true,
+          "values": {
+            "string": [
+              {
+                "name": "idea_id",
+                "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.data.split(':')[1] }}"
+              },
+              {
+                "name": "chat_id",
+                "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.message.chat.id }}"
+              }
+            ]
+          }
+        },
+        "id": "set_v3",
+        "name": "Set_Ids",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          400,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE core.ideas SET estado = 'validada' WHERE id = $1 AND estado = 'capturada' RETURNING accion_sugerida, prioridad_sugerida, tipo_tarea_sugerida;",
+          "options": {
+            "queryParameters": "={{ $('Set_Ids').item.json.idea_id }}"
+          }
+        },
+        "id": "db_up3",
+        "name": "Postgres_Actualizar_Idea",
+        "type": "n8n-nodes-base.postgres",
+        "position": [
+          600,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json[0]?.accion_sugerida }}",
+                "operation": "isNotEmpty"
+              }
+            ]
+          }
+        },
+        "id": "if_v3",
+        "name": "If_Idea_Validada",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          800,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO core.tasks (idea_id, titulo, prioridad, tipo_tarea) VALUES ($1, $2, $3, $4) RETURNING id;",
+          "options": {
+            "queryParameters": "={{ $('Set_Ids').item.json.idea_id }}, {{ $('Postgres_Actualizar_Idea').item.json[0].accion_sugerida }}, {{ $('Postgres_Actualizar_Idea').item.json[0].prioridad_sugerida }}, {{ $('Postgres_Actualizar_Idea').item.json[0].tipo_tarea_sugerida }}"
+          }
+        },
+        "id": "db_ins3",
+        "name": "Postgres_Insertar_Task",
+        "type": "n8n-nodes-base.postgres",
+        "position": [
+          1000,
+          -100
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "editMessageReplyMarkup",
+          "chatId": "={{ $('Set_Ids').item.json.chat_id }}",
+          "messageId": "={{ $('Execute Workflow Trigger').item.json.callback_query.message.message_id }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": []
+          }
+        },
+        "id": "rem_btn3",
+        "name": "Remover_Boton_Idea",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          1200,
+          -100
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "MU4yoPrZzzfRHbHb",
+            "name": "Telegram_Bot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Set_Ids').item.json.chat_id }}",
+          "text": "=\ud83d\ude80 **Conversi\u00f3n a Tarea \u00c9xitosa (#{{ $('Postgres_Insertar_Task').item.json[0].id }})**\\n*\"{{ $('Postgres_Actualizar_Idea').item.json[0].accion_sugerida }}\"*\\n\ud83d\udd25 Prioridad Heredada: `{{ $('Postgres_Actualizar_Idea').item.json[0].prioridad_sugerida }}`",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "\u2705 Done",
+                      "callback_data": "=done_task:{{ $('Postgres_Insertar_Task').item.json[0].id }}"
+                    },
+                    {
+                      "text": "\ud83d\udd04 Posponer",
+                      "callback_data": "=postpone_task:{{ $('Postgres_Insertar_Task').item.json[0].id }}"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "id": "tg_conf3",
+        "name": "Telegram_Send_Confirmacion",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          1400,
+          -100
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "MU4yoPrZzzfRHbHb",
+            "name": "Telegram_Bot"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Responder_Callback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Responder_Callback": {
+        "main": [
+          [
+            {
+              "node": "Set_Ids",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set_Ids": {
+        "main": [
+          [
+            {
+              "node": "Postgres_Actualizar_Idea",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Postgres_Actualizar_Idea": {
+        "main": [
+          [
+            {
+              "node": "If_Idea_Validada",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If_Idea_Validada": {
+        "main": [
+          [
+            {
+              "node": "Postgres_Insertar_Task",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Postgres_Insertar_Task": {
+        "main": [
+          [
+            {
+              "node": "Remover_Boton_Idea",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Remover_Boton_Idea": {
+        "main": [
+          [
+            {
+              "node": "Telegram_Send_Confirmacion",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-28T15:03:55.374Z",
+        "id": 3,
+        "workflowId": "XkPJDpYU1RR30JfV",
+        "versionId": "aa56ded0-7d6b-48fc-ba64-5b6766aa9c26",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}
