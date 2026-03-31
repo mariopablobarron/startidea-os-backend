@@ -1,0 +1,7 @@
+services:
+  startidea-os:
+    build: .
+    container_name: startidea-os
+    ports:
+      - "8080:80"
+    restart: unless-stopped
