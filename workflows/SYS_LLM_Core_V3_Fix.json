@@ -1,0 +1,251 @@
+{
+  "updatedAt": "2026-03-30T02:02:35.000Z",
+  "createdAt": "2026-03-28T15:03:54.836Z",
+  "id": "8uwLHiVQxPIOjeFI",
+  "name": "SYS_LLM_Core_V3_Fix",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger_llm_fix",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "body",
+              "value": "={{ JSON.stringify({ model: \"gpt-4o-mini\", response_format: { type: \"json_object\" }, messages: [ { role: \"system\", content: $json.prompt_sistema + \"\\n\\nCRITICAL: YOU MUST RESPOND SOLELY WITH RAW, VALID JSON. DO NOT WRAP IN MARKDOWN (NO ```json). NO CONVERSATION. JUST THE OBJECT { ... }\" }, { role: \"user\", content: $json.texto_usuario } ] }) }}"
+            }
+          ]
+        }
+      },
+      "id": "set_strict_body",
+      "name": "Set_Strict_Body",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}"
+      },
+      "id": "http_llm",
+      "name": "Llamada_LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $input.item.json.choices?.[0]?.message?.content || \"{}\";\nlet payload = {};\n\nconst match = raw.match(/\\{[\\s\\S]*\\}/);\nif (match) raw = match[0];\n\ntry {\n  payload = JSON.parse(raw);\n  \n  if (!payload.titulo) payload.titulo = \"Captura de Idea\";\n  if (!payload.descripcion) payload.descripcion = $('Execute Workflow Trigger').item.json.texto_usuario;\n  if (!payload.categoria) payload.categoria = \"General\";\n  if (!payload.accion_sugerida) payload.accion_sugerida = \"Revisar manualmente\";\n  if (!payload.prioridad) payload.prioridad = \"media\";\n  if (!payload.tipo_tarea) payload.tipo_tarea = \"operativa\";\n\n} catch(e) {\n  payload = {\n    titulo: \"Fallo Extracci\u00f3n JSON\",\n    descripcion: $('Execute Workflow Trigger').item.json.texto_usuario,\n    categoria: \"Error\",\n    accion_sugerida: \"Forzado por Fallback\",\n    prioridad: \"media\",\n    tipo_tarea: \"operativa\"\n  };\n}\nreturn { json: { payload: payload } };"
+      },
+      "id": "code_fb_fix",
+      "name": "Validacion_JSON_Fallback",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        600,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set_Strict_Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set_Strict_Body": {
+      "main": [
+        [
+          {
+            "node": "Llamada_LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamada_LLM": {
+      "main": [
+        [
+          {
+            "node": "Validacion_JSON_Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "ffec7159-6165-4094-99a7-0f402690f247",
+  "activeVersionId": "ffec7159-6165-4094-99a7-0f402690f247",
+  "versionCounter": 6,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T01:57:36.069Z",
+      "createdAt": "2026-03-30T01:57:36.069Z",
+      "role": "workflow:owner",
+      "workflowId": "8uwLHiVQxPIOjeFI",
+      "projectId": "QaMRMGJEzY5PYBIg",
+      "project": {
+        "updatedAt": "2026-03-29T23:42:43.691Z",
+        "createdAt": "2026-03-29T23:42:43.691Z",
+        "id": "QaMRMGJEzY5PYBIg",
+        "name": "mario sanchez <mario@startidea.es>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1f14cd28-5281-4da7-ad9f-65cbac0d8b14"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-29T23:42:44.155Z",
+    "createdAt": "2026-03-29T23:42:44.155Z",
+    "versionId": "ffec7159-6165-4094-99a7-0f402690f247",
+    "workflowId": "8uwLHiVQxPIOjeFI",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "trigger_llm_fix",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "keepOnlySet": true,
+          "values": {
+            "string": [
+              {
+                "name": "body",
+                "value": "={{ JSON.stringify({ model: \"gpt-4o-mini\", response_format: { type: \"json_object\" }, messages: [ { role: \"system\", content: $json.prompt_sistema + \"\\n\\nCRITICAL: YOU MUST RESPOND SOLELY WITH RAW, VALID JSON. DO NOT WRAP IN MARKDOWN (NO ```json). NO CONVERSATION. JUST THE OBJECT { ... }\" }, { role: \"user\", content: $json.texto_usuario } ] }) }}"
+              }
+            ]
+          }
+        },
+        "id": "set_strict_body",
+        "name": "Set_Strict_Body",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          200,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.openai.com/v1/chat/completions",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "openAiApi",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ $json.body }}"
+        },
+        "id": "http_llm",
+        "name": "Llamada_LLM",
+        "type": "n8n-nodes-base.httpRequest",
+        "position": [
+          400,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "let raw = $input.item.json.choices?.[0]?.message?.content || \"{}\";\nlet payload = {};\n\nconst match = raw.match(/\\{[\\s\\S]*\\}/);\nif (match) raw = match[0];\n\ntry {\n  payload = JSON.parse(raw);\n  \n  if (!payload.titulo) payload.titulo = \"Captura de Idea\";\n  if (!payload.descripcion) payload.descripcion = $('Execute Workflow Trigger').item.json.texto_usuario;\n  if (!payload.categoria) payload.categoria = \"General\";\n  if (!payload.accion_sugerida) payload.accion_sugerida = \"Revisar manualmente\";\n  if (!payload.prioridad) payload.prioridad = \"media\";\n  if (!payload.tipo_tarea) payload.tipo_tarea = \"operativa\";\n\n} catch(e) {\n  payload = {\n    titulo: \"Fallo Extracci\u00f3n JSON\",\n    descripcion: $('Execute Workflow Trigger').item.json.texto_usuario,\n    categoria: \"Error\",\n    accion_sugerida: \"Forzado por Fallback\",\n    prioridad: \"media\",\n    tipo_tarea: \"operativa\"\n  };\n}\nreturn { json: { payload: payload } };"
+        },
+        "id": "code_fb_fix",
+        "name": "Validacion_JSON_Fallback",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          600,
+          0
+        ]
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Set_Strict_Body",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set_Strict_Body": {
+        "main": [
+          [
+            {
+              "node": "Llamada_LLM",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Llamada_LLM": {
+        "main": [
+          [
+            {
+              "node": "Validacion_JSON_Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-28T15:03:54.836Z",
+        "id": 1,
+        "workflowId": "8uwLHiVQxPIOjeFI",
+        "versionId": "ffec7159-6165-4094-99a7-0f402690f247",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}

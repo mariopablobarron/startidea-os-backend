@@ -1,0 +1,361 @@
+{
+  "updatedAt": "2026-03-30T02:02:45.000Z",
+  "createdAt": "2026-03-28T15:03:55.759Z",
+  "id": "GKV2gqgdbvMpEaGm",
+  "name": "SUB_Idea_V3_Fix",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trig_i3f",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "prompt_sistema",
+              "value": "Eres el OS Startidea. Estructura el input del usuario OBLIGATORIAMENTE en este JSON exacto: {\\\"titulo\\\": \\\"...\\\", \\\"descripcion\\\": \\\"...\\\", \\\"categoria\\\": \\\"...\\\", \\\"accion_sugerida\\\": \\\"...\\\", \\\"prioridad\\\": \\\"alta|media|baja\\\", \\\"tipo_tarea\\\": \\\"estrategica|operativa\\\"}."
+            },
+            {
+              "name": "texto_usuario",
+              "value": "={{ $json.message.text.replace(/^\\/idea\\s*/, '') }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $json.message.from.id }}"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $json.message.chat.id }}"
+            }
+          ]
+        }
+      },
+      "id": "set_i3f",
+      "name": "Set_Contexto",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "8uwLHiVQxPIOjeFI"
+      },
+      "id": "call_llm3f",
+      "name": "Llamar_LLM_Core",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO core.ideas (user_id, raw_input, titulo, descripcion, categoria, accion_sugerida, prioridad_sugerida, tipo_tarea_sugerida) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+        "options": {
+          "queryParameters": "={{ $('Set_Contexto').item.json.user_id }}, {{ $('Set_Contexto').item.json.texto_usuario }}, {{ $json.payload.titulo }}, {{ $json.payload.descripcion }}, {{ $json.payload.categoria }}, {{ $json.payload.accion_sugerida }}, {{ $json.payload.prioridad }}, {{ $json.payload.tipo_tarea }}"
+        }
+      },
+      "id": "db_i3f",
+      "name": "Insert_BD_Idea",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set_Contexto').item.json.chat_id }}",
+        "text": "=\ud83d\udca1 **{{ $('Llamar_LLM_Core').item.json.payload.titulo }}**\\n\ud83d\udccc Acci\u00f3n: {{ $('Llamar_LLM_Core').item.json.payload.accion_sugerida }}\\n\ud83d\udd25 Prioridad: `{{ $('Llamar_LLM_Core').item.json.payload.prioridad }}`",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Validar y Crear Tarea \ud83c\udfaf",
+                    "callback_data": "=validar_idea:{{ $json[0].id }}"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "tg_i3f",
+      "name": "Telegram_Boton",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        800,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MU4yoPrZzzfRHbHb",
+          "name": "Telegram_Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set_Contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set_Contexto": {
+      "main": [
+        [
+          {
+            "node": "Llamar_LLM_Core",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamar_LLM_Core": {
+      "main": [
+        [
+          {
+            "node": "Insert_BD_Idea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert_BD_Idea": {
+      "main": [
+        [
+          {
+            "node": "Telegram_Boton",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "d2ae39a4-002c-4dd6-a4d5-1b4432bdb41a",
+  "activeVersionId": "d2ae39a4-002c-4dd6-a4d5-1b4432bdb41a",
+  "versionCounter": 6,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T01:57:36.131Z",
+      "createdAt": "2026-03-30T01:57:36.131Z",
+      "role": "workflow:owner",
+      "workflowId": "GKV2gqgdbvMpEaGm",
+      "projectId": "QaMRMGJEzY5PYBIg",
+      "project": {
+        "updatedAt": "2026-03-29T23:42:43.691Z",
+        "createdAt": "2026-03-29T23:42:43.691Z",
+        "id": "QaMRMGJEzY5PYBIg",
+        "name": "mario sanchez <mario@startidea.es>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1f14cd28-5281-4da7-ad9f-65cbac0d8b14"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-29T23:42:44.155Z",
+    "createdAt": "2026-03-29T23:42:44.155Z",
+    "versionId": "d2ae39a4-002c-4dd6-a4d5-1b4432bdb41a",
+    "workflowId": "GKV2gqgdbvMpEaGm",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "trig_i3f",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "keepOnlySet": true,
+          "values": {
+            "string": [
+              {
+                "name": "prompt_sistema",
+                "value": "Eres el OS Startidea. Estructura el input del usuario OBLIGATORIAMENTE en este JSON exacto: {\\\"titulo\\\": \\\"...\\\", \\\"descripcion\\\": \\\"...\\\", \\\"categoria\\\": \\\"...\\\", \\\"accion_sugerida\\\": \\\"...\\\", \\\"prioridad\\\": \\\"alta|media|baja\\\", \\\"tipo_tarea\\\": \\\"estrategica|operativa\\\"}."
+              },
+              {
+                "name": "texto_usuario",
+                "value": "={{ $json.message.text.replace(/^\\/idea\\s*/, '') }}"
+              },
+              {
+                "name": "user_id",
+                "value": "={{ $json.message.from.id }}"
+              },
+              {
+                "name": "chat_id",
+                "value": "={{ $json.message.chat.id }}"
+              }
+            ]
+          }
+        },
+        "id": "set_i3f",
+        "name": "Set_Contexto",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          200,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": "8uwLHiVQxPIOjeFI"
+        },
+        "id": "call_llm3f",
+        "name": "Llamar_LLM_Core",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "position": [
+          400,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO core.ideas (user_id, raw_input, titulo, descripcion, categoria, accion_sugerida, prioridad_sugerida, tipo_tarea_sugerida) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;",
+          "options": {
+            "queryParameters": "={{ $('Set_Contexto').item.json.user_id }}, {{ $('Set_Contexto').item.json.texto_usuario }}, {{ $json.payload.titulo }}, {{ $json.payload.descripcion }}, {{ $json.payload.categoria }}, {{ $json.payload.accion_sugerida }}, {{ $json.payload.prioridad }}, {{ $json.payload.tipo_tarea }}"
+          }
+        },
+        "id": "db_i3f",
+        "name": "Insert_BD_Idea",
+        "type": "n8n-nodes-base.postgres",
+        "position": [
+          600,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Set_Contexto').item.json.chat_id }}",
+          "text": "=\ud83d\udca1 **{{ $('Llamar_LLM_Core').item.json.payload.titulo }}**\\n\ud83d\udccc Acci\u00f3n: {{ $('Llamar_LLM_Core').item.json.payload.accion_sugerida }}\\n\ud83d\udd25 Prioridad: `{{ $('Llamar_LLM_Core').item.json.payload.prioridad }}`",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "Validar y Crear Tarea \ud83c\udfaf",
+                      "callback_data": "=validar_idea:{{ $json[0].id }}"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "id": "tg_i3f",
+        "name": "Telegram_Boton",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          800,
+          0
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "MU4yoPrZzzfRHbHb",
+            "name": "Telegram_Bot"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Set_Contexto",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set_Contexto": {
+        "main": [
+          [
+            {
+              "node": "Llamar_LLM_Core",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Llamar_LLM_Core": {
+        "main": [
+          [
+            {
+              "node": "Insert_BD_Idea",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert_BD_Idea": {
+        "main": [
+          [
+            {
+              "node": "Telegram_Boton",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-28T15:03:55.759Z",
+        "id": 6,
+        "workflowId": "GKV2gqgdbvMpEaGm",
+        "versionId": "d2ae39a4-002c-4dd6-a4d5-1b4432bdb41a",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "SUB_Mis_Tareas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trig_mst",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [0,0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, titulo, estado FROM core.tasks WHERE estado != 'done' ORDER BY created_at DESC LIMIT 5;"
+      },
+      "id": "pg_mst",
+      "name": "Postgres_Mis_Tareas",
+      "type": "n8n-nodes-base.postgres",
+      "position": [220,0]
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = '⚡ **TUS ÚLTIMAS 5 TAREAS ACTIVAS**\\n\\n';\nif($input.all().length === 0) {\n  text += 'No hay tareas activas.';\n} else {\n  for (let item of $input.all()) {\n    text += `🔹 [#${item.json.id}] *${item.json.titulo}* (` + \"`\" + item.json.estado + \"`\" + `)\\n`;\n  }\n}\ntext += '\\n*(Botones interactivos en próxima versión)*';\nreturn { json: { final_text: text } };"
+      },
+      "id": "code_mst",
+      "name": "Code_Format",
+      "type": "n8n-nodes-base.code",
+      "position": [440,0]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Execute Workflow Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.final_text }}"
+      },
+      "id": "tg_mst",
+      "name": "Telegram_Mis_Tareas",
+      "type": "n8n-nodes-base.telegram",
+      "position": [660,0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [ [ { "node": "Postgres_Mis_Tareas", "type": "main", "index": 0 } ] ] },
+    "Postgres_Mis_Tareas": { "main": [ [ { "node": "Code_Format", "type": "main", "index": 0 } ] ] },
+    "Code_Format": { "main": [ [ { "node": "Telegram_Mis_Tareas", "type": "main", "index": 0 } ] ] }
+  }
+}

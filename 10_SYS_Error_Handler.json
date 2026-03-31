@@ -1,0 +1,25 @@
+{
+  "name": "SYS_Error_Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trig_err",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "position": [ 0, 0 ]
+    },
+    {
+      "parameters": {
+        "chatId": "TU_CHAT_ID_ADMIN",
+        "text": "=🚨 **CRASH EN STARTIDEA OS**\\n\\n💥 **Workflow:** `{{ $json.execution.workflow.name }}`\\n❌ **Nodo Fallido:** `{{ $json.execution.error.node.name }}`\\n📜 **Error:** `{{ $json.execution.error.message }}`\\n\\n🔗 Revisar logs en n8n."
+      },
+      "id": "tg_err",
+      "name": "Telegram_Error_Alert",
+      "type": "n8n-nodes-base.telegram",
+      "position": [ 300, 0 ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": { "main": [ [ { "node": "Telegram_Error_Alert", "type": "main", "index": 0 } ] ] }
+  }
+}

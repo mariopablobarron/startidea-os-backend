@@ -1,0 +1,123 @@
+{
+  "name": "SUB_Validacion_Task",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger_val",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [ 0, 0 ]
+    },
+    {
+      "parameters": {
+        "operation": "answerCallbackQuery",
+        "queryId": "={{ $json.callback_query.id }}",
+        "text": "Procesando idea..."
+      },
+      "id": "ans_cb",
+      "name": "Answer_Callback_Query",
+      "type": "n8n-nodes-base.telegram",
+      "position": [ 220, 0 ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "idea_id", "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.data.split(':')[1] }}" },
+            { "name": "chat_id", "value": "={{ $('Execute Workflow Trigger').item.json.callback_query.message.chat.id }}" }
+          ]
+        }
+      },
+      "id": "set_ids",
+      "name": "Set_Ids",
+      "type": "n8n-nodes-base.set",
+      "position": [ 440, 0 ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE core.ideas SET estado = 'validada' WHERE id = $1 AND estado = 'capturada' RETURNING accion_sugerida;",
+        "options": {
+          "queryParameters": "={{ $('Set_Ids').item.json.idea_id }}"
+        }
+      },
+      "id": "db_update",
+      "name": "Postgres_Actualizar",
+      "type": "n8n-nodes-base.postgres",
+      "position": [ 660, 0 ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json[0].accion_sugerida }}", "operation": "isNotEmpty" }
+          ]
+        }
+      },
+      "id": "if_valid",
+      "name": "If_Es_Valida",
+      "type": "n8n-nodes-base.if",
+      "position": [ 880, 0 ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO core.tasks (idea_id, titulo) VALUES ($1, $2) RETURNING id;",
+        "options": {
+          "queryParameters": "={{ $('Set_Ids').item.json.idea_id }}, {{ $('Postgres_Actualizar').item.json[0].accion_sugerida }}"
+        }
+      },
+      "id": "db_insert",
+      "name": "Postgres_Insertar_Task",
+      "type": "n8n-nodes-base.postgres",
+      "position": [ 1100, -100 ]
+    },
+    {
+      "parameters": {
+        "operation": "editMessageReplyMarkup",
+        "chatId": "={{ $('Set_Ids').item.json.chat_id }}",
+        "messageId": "={{ $('Execute Workflow Trigger').item.json.callback_query.message.message_id }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": { "rows": [] }
+      },
+      "id": "remove_btn",
+      "name": "Remove_Button",
+      "type": "n8n-nodes-base.telegram",
+      "position": [ 1320, -100 ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Set_Ids').item.json.chat_id }}",
+        "text": "=✅ **¡Tracción generada!**\\nTarea #{{ $('Postgres_Insertar_Task').item.json[0].id }} creada en el sistema:\\n\\n*\"{{ $('Postgres_Actualizar').item.json[0].accion_sugerida }}\"*"
+      },
+      "id": "send_conf",
+      "name": "Telegram_Send_Confirmacion",
+      "type": "n8n-nodes-base.telegram",
+      "position": [ 1540, -100 ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [ [ { "node": "Answer_Callback_Query", "type": "main", "index": 0 } ] ]
+    },
+    "Answer_Callback_Query": {
+      "main": [ [ { "node": "Set_Ids", "type": "main", "index": 0 } ] ]
+    },
+    "Set_Ids": {
+      "main": [ [ { "node": "Postgres_Actualizar", "type": "main", "index": 0 } ] ]
+    },
+    "Postgres_Actualizar": {
+      "main": [ [ { "node": "If_Es_Valida", "type": "main", "index": 0 } ] ]
+    },
+    "If_Es_Valida": {
+      "main": [ [ { "node": "Postgres_Insertar_Task", "type": "main", "index": 0 } ] ]
+    },
+    "Postgres_Insertar_Task": {
+      "main": [ [ { "node": "Remove_Button", "type": "main", "index": 0 } ] ]
+    },
+    "Remove_Button": {
+      "main": [ [ { "node": "Telegram_Send_Confirmacion", "type": "main", "index": 0 } ] ]
+    }
+  }
+}
