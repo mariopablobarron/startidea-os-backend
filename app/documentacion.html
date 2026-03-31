@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Startidea OS | Documentacion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <div class="pattern" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a class="brand" href="index.html"><span class="brand-mark"></span><strong>Startidea OS</strong></a>
+        <button class="menu-btn" type="button">Menu</button>
+        <nav class="nav">
+          <a href="index.html">Inicio</a>
+          <a href="plataforma.html">Plataforma</a>
+          <a href="workflows.html">Workflows</a>
+          <a href="arquitectura.html">Arquitectura</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a class="active" href="documentacion.html">Documentacion</a>
+          <a href="contacto.html">Contacto</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <span class="kicker reveal">Guia tecnica</span>
+        <h1 class="reveal">Documentacion operativa</h1>
+        <p class="lead reveal">Comandos y referencias para desarrollo local y despliegue continuo.</p>
+      </section>
+
+      <section class="section">
+        <div class="grid">
+          <article class="card span-6 reveal">
+            <h3>Local</h3>
+            <p class="code">docker compose up --build</p>
+          </article>
+          <article class="card span-6 reveal">
+            <h3>Push deploy</h3>
+            <p class="code">git add . && git commit -m "update" && git push origin main</p>
+          </article>
+          <article class="card span-12 reveal">
+            <h3>Estructura actual</h3>
+            <p>Flujos n8n versionados en raiz y en carpeta workflows. SQL de inicializacion y updates para evolucion de esquema.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer"><div class="container"><p>Startidea OS <span data-year></span></p></div></footer>
+    <script src="assets/app.js"></script>
+  </body>
+</html>

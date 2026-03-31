@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Startidea OS | Workflows</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <div class="pattern" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a class="brand" href="index.html"><span class="brand-mark"></span><strong>Startidea OS</strong></a>
+        <button class="menu-btn" type="button">Menu</button>
+        <nav class="nav">
+          <a href="index.html">Inicio</a>
+          <a href="plataforma.html">Plataforma</a>
+          <a class="active" href="workflows.html">Workflows</a>
+          <a href="arquitectura.html">Arquitectura</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="documentacion.html">Documentacion</a>
+          <a href="contacto.html">Contacto</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <span class="kicker reveal">n8n orchestration</span>
+        <h1 class="reveal">Mapa de workflows del sistema</h1>
+        <p class="lead reveal">Versiones y subflujos principales para cubrir ideacion, accion, validacion y estado.</p>
+      </section>
+
+      <section class="section">
+        <div class="grid">
+          <article class="card span-6 reveal">
+            <h3>HUB Router</h3>
+            <p>Ruteo central de solicitudes y seleccion de pipeline segun intencion.</p>
+            <p class="code">Archivos: 02_HUB_Main_Router.json, 06_HUB_Main_Router_V2.json, 12_HUB_Router_V3.json</p>
+          </article>
+          <article class="card span-6 reveal">
+            <h3>SYS LLM Core</h3>
+            <p>Motor principal de razonamiento contextual y estructura de salida.</p>
+            <p class="code">Archivos: 01_SYS_LLM_Core.json, 13_SYS_LLM_Core_V3.json, 19_SYS_LLM_Core_V4.json</p>
+          </article>
+          <article class="card span-6 reveal">
+            <h3>SUB Idea / Accion</h3>
+            <p>Genera propuestas concretas y lista de acciones ejecutables.</p>
+            <p class="code">Archivos: 03_SUB_Idea.json, 07_SUB_Accion.json, 14_SUB_Idea_V3.json, 15_SUB_Accion_V3.json</p>
+          </article>
+          <article class="card span-6 reveal">
+            <h3>SUB Validacion / Focus</h3>
+            <p>Refina tareas, confirma claridad y establece prioridades diarias.</p>
+            <p class="code">Archivos: 04_SUB_Validacion_Task.json, 16_SUB_Validacion_Task_V3.json, 17_SUB_Hoy_Focus.json</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer"><div class="container"><p>Startidea OS <span data-year></span></p></div></footer>
+    <script src="assets/app.js"></script>
+  </body>
+</html>

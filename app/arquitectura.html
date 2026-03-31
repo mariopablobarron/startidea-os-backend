@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Startidea OS | Arquitectura</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <div class="pattern" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a class="brand" href="index.html"><span class="brand-mark"></span><strong>Startidea OS</strong></a>
+        <button class="menu-btn" type="button">Menu</button>
+        <nav class="nav">
+          <a href="index.html">Inicio</a>
+          <a href="plataforma.html">Plataforma</a>
+          <a href="workflows.html">Workflows</a>
+          <a class="active" href="arquitectura.html">Arquitectura</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="documentacion.html">Documentacion</a>
+          <a href="contacto.html">Contacto</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <span class="kicker reveal">Infra y software</span>
+        <h1 class="reveal">Arquitectura en VPS + Coolify</h1>
+        <p class="lead reveal">Diseñada para ser simple de operar y facil de escalar por capas.</p>
+      </section>
+
+      <section class="section">
+        <div class="grid">
+          <article class="card span-8 reveal">
+            <h3>Diagrama logico</h3>
+            <p class="code">Usuario -> Web UI -> API/Automatizacion -> n8n Workflows -> SQL -> Observabilidad</p>
+            <p style="margin-top: 0.8rem;">El despliegue actual sirve frontend estatico por Nginx, mientras el backend y la capa de automatizacion se integran por endpoints internos.</p>
+          </article>
+          <article class="card span-4 reveal">
+            <h3>Runtime</h3>
+            <ul>
+              <li>Docker como unidad de despliegue</li>
+              <li>Coolify para CI/CD y dominios</li>
+              <li>GitHub como fuente de versionado</li>
+            </ul>
+          </article>
+          <article class="card span-6 reveal">
+            <h3>Seguridad base</h3>
+            <ul>
+              <li>Variables sensibles fuera de Git</li>
+              <li>HTTPS con certificados automaticos</li>
+              <li>Registros de acceso centralizados</li>
+            </ul>
+          </article>
+          <article class="card span-6 reveal">
+            <h3>Escalamiento</h3>
+            <ul>
+              <li>Separar web, API y n8n en servicios</li>
+              <li>Agregar cola para procesos largos</li>
+              <li>Monitoreo de latencia y errores</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer"><div class="container"><p>Startidea OS <span data-year></span></p></div></footer>
+    <script src="assets/app.js"></script>
+  </body>
+</html>
