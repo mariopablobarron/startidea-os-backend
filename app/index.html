@@ -3,72 +3,90 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Startidea OS</title>
-    <style>
-      :root {
-        --bg-1: #0b132b;
-        --bg-2: #1c2541;
-        --accent: #5bc0be;
-        --text: #f4f4f8;
-        --muted: #c9d6df;
-      }
-
-      * { box-sizing: border-box; }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        font-family: "Space Grotesk", "Segoe UI", sans-serif;
-        color: var(--text);
-        background:
-          radial-gradient(circle at 20% 20%, rgba(91, 192, 190, 0.25), transparent 40%),
-          linear-gradient(135deg, var(--bg-1), var(--bg-2));
-      }
-
-      .card {
-        width: min(900px, 92vw);
-        padding: 2.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        border-radius: 18px;
-        backdrop-filter: blur(6px);
-        background: rgba(255, 255, 255, 0.04);
-        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
-      }
-
-      h1 {
-        margin: 0 0 0.8rem;
-        font-size: clamp(2rem, 4vw, 3.2rem);
-        line-height: 1.1;
-      }
-
-      p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 1.05rem;
-        line-height: 1.65;
-      }
-
-      .status {
-        margin-top: 1.2rem;
-        display: inline-block;
-        padding: 0.38rem 0.75rem;
-        border-radius: 999px;
-        font-size: 0.9rem;
-        border: 1px solid rgba(91, 192, 190, 0.45);
-        color: var(--accent);
-      }
-    </style>
+    <title>Startidea OS | Inicio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/styles.css" />
   </head>
   <body>
-    <main class="card">
-      <h1>Startidea OS</h1>
-      <p>
-        Base inicial desplegable en Coolify sobre VPS. Si ves esta pantalla, el pipeline de build y
-        deployment ya funciona.
-      </p>
-      <span class="status">Estado: activo</span>
+    <div class="pattern" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark"></span>
+          <strong>Startidea OS</strong>
+        </a>
+        <button class="menu-btn" type="button">Menu</button>
+        <nav class="nav">
+          <a class="active" href="index.html">Inicio</a>
+          <a href="plataforma.html">Plataforma</a>
+          <a href="workflows.html">Workflows</a>
+          <a href="arquitectura.html">Arquitectura</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="documentacion.html">Documentacion</a>
+          <a href="contacto.html">Contacto</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <span class="kicker reveal">Sistema operativo para ideas y ejecucion</span>
+        <h1 class="reveal">Lleva una idea a produccion en un solo flujo.</h1>
+        <p class="lead reveal">
+          Startidea OS conecta rutinas de AI, orquestacion n8n, validacion de tareas y panel operativo para transformar conversaciones en planes accionables.
+        </p>
+        <div class="hero-actions reveal">
+          <a class="btn primary" href="plataforma.html">Explorar plataforma</a>
+          <a class="btn ghost" href="workflows.html">Ver workflows</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="reveal">Bloques principales</h2>
+        <div class="grid">
+          <article class="card span-4 reveal">
+            <h3>Core LLM</h3>
+            <p>Normaliza entrada, contexto y tono para que cada modulo de la plataforma opere con consistencia.</p>
+          </article>
+          <article class="card span-4 reveal">
+            <h3>Router Inteligente</h3>
+            <p>Deriva cada mensaje al subflujo correcto: idea, accion, estado, validacion o foco diario.</p>
+          </article>
+          <article class="card span-4 reveal">
+            <h3>Operacion en VPS</h3>
+            <p>Despliegue y entrega continua con GitHub + Coolify para publicar cambios por push.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="reveal">Ciclo operativo</h2>
+        <div class="grid">
+          <article class="card span-8 reveal">
+            <p>La plataforma sigue un ciclo corto de captura, priorizacion, accion y trazabilidad para sostener foco y ejecucion.</p>
+            <div class="timeline" style="margin-top: 1rem;">
+              <div class="step"><small>01</small> Captura idea o problema.</div>
+              <div class="step"><small>02</small> Clasifica tipo de solicitud y urgencia.</div>
+              <div class="step"><small>03</small> Genera tarea con objetivo y fecha.</div>
+              <div class="step"><small>04</small> Actualiza estado y mide progreso.</div>
+            </div>
+          </article>
+          <article class="card span-4 reveal">
+            <h3>Estado del proyecto</h3>
+            <p>Base dockerizada activa, workflows versionados y estructura lista para escalar frontend + backend.</p>
+            <p class="code" style="margin-top: 0.7rem;">Stack: Docker + Nginx + n8n + SQL + GitHub + Coolify</p>
+          </article>
+        </div>
+      </section>
     </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>Startidea OS <span data-year></span> | Build en VPS con Coolify</p>
+      </div>
+    </footer>
+    <script src="assets/app.js"></script>
   </body>
 </html>
