@@ -1,0 +1,74 @@
+{
+  "name": "SUB_Hoy_Focus",
+  "nodes": [
+    { "parameters": {}, "id": "t_hf", "name": "Execute Workflow Trigger", "type": "n8n-nodes-base.executeWorkflowTrigger", "position": [0,0] },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.message.text }}",
+        "rules": {
+          "rules": [
+            { "operation": "startsWith", "value2": "/hoy" },
+            { "operation": "startsWith", "value2": "/focus" }
+          ]
+        }
+      },
+      "id": "sw_hf", "name": "Switch_Comando", "type": "n8n-nodes-base.switch", "position": [200,0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, titulo, prioridad, tipo_tarea FROM core.tasks WHERE estado IN ('todo', 'in_progress') ORDER BY case prioridad when 'alta' then 1 when 'media' then 2 else 3 end ASC, created_at ASC LIMIT 3;"
+      },
+      "id": "db_h1", "name": "Postgres_Hoy_Top", "type": "n8n-nodes-base.postgres", "position": [500,-150]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, titulo, prioridad, tipo_tarea FROM core.tasks WHERE estado IN ('todo', 'in_progress') ORDER BY case prioridad when 'alta' then 1 when 'media' then 2 else 3 end ASC, updated_at DESC LIMIT 1;"
+      },
+      "id": "db_f1", "name": "Postgres_Focus", "type": "n8n-nodes-base.postgres", "position": [500,100]
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = '⚡ **TU FOCUS DE HOY**\\n\\n';\nif($input.all().length === 0) {\n  text += 'No hay tareas activas en el sistema.';\n} else {\n  let item = $input.all()[0];\n  text += `🎯 **[#${item.json.id}] ${item.json.titulo}**\\n🔥 Prioridad: ` + \"`\" + item.json.prioridad + \"`\\n\" + `⚙️ Tipo: ` + \"`\" + item.json.tipo_tarea + \"`\";\n}\nreturn { json: { text: text, task_id: $input.all().length > 0 ? $input.all()[0].json.id : null } };"
+      },
+      "id": "c_fc", "name": "Formato_Focus", "type": "n8n-nodes-base.code", "position": [700,100]
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = '🌅 **PLANIFICACIÓN DE HOY**\\n\\n🔥 Prioridad Alta:\\n';\nfor(let item of $input.all()) {\n  text += `🔹 [#${item.json.id}] ${item.json.titulo}\\n`;\n}\ntext += '\\n*(Usa /focus para atacar la primera)*';\nreturn { json: { text: text } };"
+      },
+      "id": "c_hy", "name": "Formato_Hoy", "type": "n8n-nodes-base.code", "position": [700,-150]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Execute Workflow Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}"
+      },
+      "id": "tg_hy", "name": "Telegram_Send_Hoy", "type": "n8n-nodes-base.telegram", "position": [900,-150]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Execute Workflow Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "={{ $json.task_id ? 'inlineKeyboard' : 'none' }}",
+        "inlineKeyboard": "={{ $json.task_id ? { rows: [ { row: { buttons: [ { text: '✅ Misión Cumplida', callback_data: 'done_task:' + $json.task_id } ] } } ] } : {} }}"
+      },
+      "id": "tg_fc", "name": "Telegram_Send_Focus", "type": "n8n-nodes-base.telegram", "position": [900,100]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [ [ { "node": "Switch_Comando", "type": "main", "index": 0 } ] ] },
+    "Switch_Comando": {
+      "main": [
+        [ { "node": "Postgres_Hoy_Top", "type": "main", "index": 0 } ],
+        [ { "node": "Postgres_Focus", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Postgres_Hoy_Top": { "main": [ [ { "node": "Formato_Hoy", "type": "main", "index": 0 } ] ] },
+    "Formato_Hoy": { "main": [ [ { "node": "Telegram_Send_Hoy", "type": "main", "index": 0 } ] ] },
+    "Postgres_Focus": { "main": [ [ { "node": "Formato_Focus", "type": "main", "index": 0 } ] ] },
+    "Formato_Focus": { "main": [ [ { "node": "Telegram_Send_Focus", "type": "main", "index": 0 } ] ] }
+  }
+}

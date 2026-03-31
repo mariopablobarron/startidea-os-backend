@@ -1,0 +1,36 @@
+{
+  "name": "SUB_Estado",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trig_est",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [0,0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT (SELECT count(*) FROM core.ideas WHERE estado='capturada') as ideas_capturadas, (SELECT count(*) FROM core.tasks WHERE estado='todo') as tasks_todo, (SELECT count(*) FROM core.tasks WHERE estado='in_progress') as tasks_in_progress, (SELECT count(*) FROM core.tasks WHERE estado='done') as tasks_done;"
+      },
+      "id": "pg_est",
+      "name": "Postgres_Estadisticas",
+      "type": "n8n-nodes-base.postgres",
+      "position": [220,0]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Execute Workflow Trigger').item.json.message.chat.id }}",
+        "text": "=📊 **STATUS DEL SISTEMA**\\n\\n💡 **Ideas Nativas**\\n- Capturadas: `{{ $json[0].ideas_capturadas }}`\\n\\n⚙️ **Motor de Tareas**\\n- To-Do: `{{ $json[0].tasks_todo }}`\\n- In Progress: `{{ $json[0].tasks_in_progress }}`\\n- Done: `{{ $json[0].tasks_done }}`"
+      },
+      "id": "tg_est",
+      "name": "Telegram_Estado",
+      "type": "n8n-nodes-base.telegram",
+      "position": [440,0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [ [ { "node": "Postgres_Estadisticas", "type": "main", "index": 0 } ] ] },
+    "Postgres_Estadisticas": { "main": [ [ { "node": "Telegram_Estado", "type": "main", "index": 0 } ] ] }
+  }
+}

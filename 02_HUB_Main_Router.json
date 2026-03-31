@@ -1,0 +1,65 @@
+{
+  "name": "HUB_Main_Router",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message", "callback_query"]
+      },
+      "id": "telegram_main",
+      "name": "Telegram_Listener",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [ 0, 0 ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.message ? $json.message.text : ($json.callback_query ? $json.callback_query.data : '') }}",
+        "rules": {
+          "rules": [
+            {
+              "operation": "startsWith",
+              "value2": "/idea"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "validar_idea:"
+            }
+          ]
+        }
+      },
+      "id": "switch",
+      "name": "Enrutador_Principal",
+      "type": "n8n-nodes-base.switch",
+      "position": [ 220, 0 ]
+    },
+    {
+      "parameters": {
+        "workflowId": "SELECCIONAR_MANUALMENTE_SUB_IDEA"
+      },
+      "id": "call_idea",
+      "name": "Ejecutar_Sub_Idea",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [ 440, -100 ]
+    },
+    {
+      "parameters": {
+        "workflowId": "SELECCIONAR_MANUALMENTE_SUB_VALIDACION_TASK"
+      },
+      "id": "call_validate",
+      "name": "Ejecutar_Sub_Validacion",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [ 440, 100 ]
+    }
+  ],
+  "connections": {
+    "Telegram_Listener": {
+      "main": [ [ { "node": "Enrutador_Principal", "type": "main", "index": 0 } ] ]
+    },
+    "Enrutador_Principal": {
+      "main": [
+        [ { "node": "Ejecutar_Sub_Idea", "type": "main", "index": 0 } ],
+        [ { "node": "Ejecutar_Sub_Validacion", "type": "main", "index": 0 } ]
+      ]
+    }
+  }
+}

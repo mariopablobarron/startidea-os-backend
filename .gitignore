@@ -6,3 +6,9 @@ dist/
 build/
 coverage/
 *.log
+*.tmp
+id_rsa_vps
+credentials.json
+auth_token.txt
+temp/
+workflows/*.json.bak

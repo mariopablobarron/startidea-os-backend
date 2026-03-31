@@ -1,0 +1,514 @@
+{
+  "updatedAt": "2026-03-30T03:11:36.682Z",
+  "createdAt": "2026-03-30T03:11:36.682Z",
+  "id": "YPf3B4BnswcMnase",
+  "name": "HUB_Main_Router_V3 (Fixed Version)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ]
+      },
+      "id": "telegram_main_v3",
+      "name": "Telegram_Listener",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MU4yoPrZzzfRHbHb",
+          "name": "Telegram_Bot"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.message ? $json.message.text : ($json.callback_query ? $json.callback_query.data : '') }}",
+        "rules": {
+          "rules": [
+            {
+              "operation": "startsWith",
+              "value2": "/idea"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "validar_idea:"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/accion"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/hoy"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/focus"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "done_task:"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "postpone_task:"
+            }
+          ]
+        }
+      },
+      "id": "switch_v3",
+      "name": "Enrutador_Inteligente",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        300,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "workflowId": "GKV2gqgdbvMpEaGm"
+      },
+      "id": "r_idea",
+      "name": "Ejecutar_Idea",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        -300
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "workflowId": "XkPJDpYU1RR30JfV"
+      },
+      "id": "r_val",
+      "name": "Ejecutar_Validacion",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        -200
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "workflowId": "HbkRL9T7DsoZr3wm"
+      },
+      "id": "r_acc",
+      "name": "Ejecutar_Accion",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        -100
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "workflowId": "2Ct3D2Oha7nw5pVZ"
+      },
+      "id": "r_hoy",
+      "name": "Ejecutar_Hoy",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "workflowId": "2Ct3D2Oha7nw5pVZ"
+      },
+      "id": "r_foc",
+      "name": "Ejecutar_Focus",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        100
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "workflowId": "JGep1ijaQjdEwuI1"
+      },
+      "id": "r_done",
+      "name": "Ejecutar_Interactive_Done",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        200
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "workflowId": "JGep1ijaQjdEwuI1"
+      },
+      "id": "r_pos",
+      "name": "Ejecutar_Interactive_Postpone",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        600,
+        300
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Telegram_Listener": {
+      "main": [
+        [
+          {
+            "node": "Enrutador_Inteligente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutador_Inteligente": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar_Idea",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Validacion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Accion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Hoy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Focus",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Interactive_Done",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar_Interactive_Postpone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "1035de81-0174-40c9-9a36-f4d8cfad8a41",
+  "activeVersionId": "1035de81-0174-40c9-9a36-f4d8cfad8a41",
+  "versionCounter": 3,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T03:11:36.684Z",
+      "createdAt": "2026-03-30T03:11:36.684Z",
+      "role": "workflow:owner",
+      "workflowId": "YPf3B4BnswcMnase",
+      "projectId": "QaMRMGJEzY5PYBIg",
+      "project": {
+        "updatedAt": "2026-03-29T23:42:43.691Z",
+        "createdAt": "2026-03-29T23:42:43.691Z",
+        "id": "QaMRMGJEzY5PYBIg",
+        "name": "mario sanchez <mario@startidea.es>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1f14cd28-5281-4da7-ad9f-65cbac0d8b14"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-30T03:11:36.693Z",
+    "createdAt": "2026-03-30T03:11:36.693Z",
+    "versionId": "1035de81-0174-40c9-9a36-f4d8cfad8a41",
+    "workflowId": "YPf3B4BnswcMnase",
+    "nodes": [
+      {
+        "parameters": {
+          "updates": [
+            "message",
+            "callback_query"
+          ]
+        },
+        "id": "telegram_main_v3",
+        "name": "Telegram_Listener",
+        "type": "n8n-nodes-base.telegramTrigger",
+        "position": [
+          0,
+          0
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "MU4yoPrZzzfRHbHb",
+            "name": "Telegram_Bot"
+          }
+        },
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "dataType": "string",
+          "value1": "={{ $json.message ? $json.message.text : ($json.callback_query ? $json.callback_query.data : '') }}",
+          "rules": {
+            "rules": [
+              {
+                "operation": "startsWith",
+                "value2": "/idea"
+              },
+              {
+                "operation": "startsWith",
+                "value2": "validar_idea:"
+              },
+              {
+                "operation": "startsWith",
+                "value2": "/accion"
+              },
+              {
+                "operation": "startsWith",
+                "value2": "/hoy"
+              },
+              {
+                "operation": "startsWith",
+                "value2": "/focus"
+              },
+              {
+                "operation": "startsWith",
+                "value2": "done_task:"
+              },
+              {
+                "operation": "startsWith",
+                "value2": "postpone_task:"
+              }
+            ]
+          }
+        },
+        "id": "switch_v3",
+        "name": "Enrutador_Inteligente",
+        "type": "n8n-nodes-base.switch",
+        "position": [
+          300,
+          0
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "workflowId": "GKV2gqgdbvMpEaGm"
+        },
+        "id": "r_idea",
+        "name": "Ejecutar_Idea",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "position": [
+          600,
+          -300
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "workflowId": "XkPJDpYU1RR30JfV"
+        },
+        "id": "r_val",
+        "name": "Ejecutar_Validacion",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "position": [
+          600,
+          -200
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "workflowId": "HbkRL9T7DsoZr3wm"
+        },
+        "id": "r_acc",
+        "name": "Ejecutar_Accion",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "position": [
+          600,
+          -100
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "workflowId": "2Ct3D2Oha7nw5pVZ"
+        },
+        "id": "r_hoy",
+        "name": "Ejecutar_Hoy",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "position": [
+          600,
+          0
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "workflowId": "2Ct3D2Oha7nw5pVZ"
+        },
+        "id": "r_foc",
+        "name": "Ejecutar_Focus",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "position": [
+          600,
+          100
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "workflowId": "JGep1ijaQjdEwuI1"
+        },
+        "id": "r_done",
+        "name": "Ejecutar_Interactive_Done",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "position": [
+          600,
+          200
+        ],
+        "typeVersion": 1
+      },
+      {
+        "parameters": {
+          "workflowId": "JGep1ijaQjdEwuI1"
+        },
+        "id": "r_pos",
+        "name": "Ejecutar_Interactive_Postpone",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "position": [
+          600,
+          300
+        ],
+        "typeVersion": 1
+      }
+    ],
+    "connections": {
+      "Telegram_Listener": {
+        "main": [
+          [
+            {
+              "node": "Enrutador_Inteligente",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Enrutador_Inteligente": {
+        "main": [
+          [
+            {
+              "node": "Ejecutar_Idea",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ejecutar_Validacion",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ejecutar_Accion",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ejecutar_Hoy",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ejecutar_Focus",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ejecutar_Interactive_Done",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ejecutar_Interactive_Postpone",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "mario sanchez",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-30T03:11:36.989Z",
+        "id": 8,
+        "workflowId": "YPf3B4BnswcMnase",
+        "versionId": "1035de81-0174-40c9-9a36-f4d8cfad8a41",
+        "event": "activated",
+        "userId": "1f14cd28-5281-4da7-ad9f-65cbac0d8b14"
+      }
+    ]
+  }
+}

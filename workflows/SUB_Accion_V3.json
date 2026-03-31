@@ -1,0 +1,383 @@
+{
+  "updatedAt": "2026-03-30T02:02:55.000Z",
+  "createdAt": "2026-03-28T15:03:55.041Z",
+  "id": "HbkRL9T7DsoZr3wm",
+  "name": "SUB_Accion_V3",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "t_a3",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.message.chat.id }}"
+            },
+            {
+              "name": "msg_id",
+              "value": "={{ $json.message.message_id }}"
+            },
+            {
+              "name": "raw_text",
+              "value": "={{ $json.message.text }}"
+            }
+          ]
+        }
+      },
+      "id": "s_a3",
+      "name": "Paso_1_Params",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $('Paso_1_Params').item.json.raw_text;\nconst match = text.match(/^\\/accion\\s+(alta|media|baja)\\s+(.*)/i);\nlet prioridad = 'media';\nlet titulo = text.replace(/^\\/accion\\s*/i, '');\nif (match) {\n  prioridad = match[1].toLowerCase();\n  titulo = match[2];\n}\nreturn { json: { prioridad: prioridad, titulo: titulo } };"
+      },
+      "id": "c_a3",
+      "name": "Parsear_Prioridad",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO core.tasks (titulo, prioridad, asignado_a, estado, origin_msg_id) VALUES ($1, $2, 'ceo', 'todo', $3) ON CONFLICT (origin_msg_id) DO NOTHING RETURNING id, prioridad;",
+        "options": {
+          "queryParameters": "={{ $('Parsear_Prioridad').item.json.titulo }}, {{ $('Parsear_Prioridad').item.json.prioridad }}, {{ $('Paso_1_Params').item.json.msg_id }}"
+        }
+      },
+      "id": "db_a3",
+      "name": "Insert_BD_Accion",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json[0]?.id }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "if_a3",
+      "name": "If_Inserted",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Paso_1_Params').item.json.chat_id }}",
+        "text": "=\u26a1 **Acci\u00f3n R\u00e1pida Creada (#{{ $('Insert_BD_Accion').item.json[0].id }})**\\n*\"{{ $('Parsear_Prioridad').item.json.titulo }}\"*\\n\ud83d\udd25 Prioridad: `{{ $('Insert_BD_Accion').item.json[0].prioridad }}`"
+      },
+      "id": "tg_a3",
+      "name": "Telegram_Confirm",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1000,
+        -100
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "MU4yoPrZzzfRHbHb",
+          "name": "Telegram_Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Paso_1_Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso_1_Params": {
+      "main": [
+        [
+          {
+            "node": "Parsear_Prioridad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear_Prioridad": {
+      "main": [
+        [
+          {
+            "node": "Insert_BD_Accion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert_BD_Accion": {
+      "main": [
+        [
+          {
+            "node": "If_Inserted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If_Inserted": {
+      "main": [
+        [
+          {
+            "node": "Telegram_Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "b7ad5b67-efc8-416a-a109-94f2371eab16",
+  "activeVersionId": "b7ad5b67-efc8-416a-a109-94f2371eab16",
+  "versionCounter": 6,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T01:57:36.187Z",
+      "createdAt": "2026-03-30T01:57:36.187Z",
+      "role": "workflow:owner",
+      "workflowId": "HbkRL9T7DsoZr3wm",
+      "projectId": "QaMRMGJEzY5PYBIg",
+      "project": {
+        "updatedAt": "2026-03-29T23:42:43.691Z",
+        "createdAt": "2026-03-29T23:42:43.691Z",
+        "id": "QaMRMGJEzY5PYBIg",
+        "name": "mario sanchez <mario@startidea.es>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "1f14cd28-5281-4da7-ad9f-65cbac0d8b14"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-29T23:42:44.155Z",
+    "createdAt": "2026-03-29T23:42:44.155Z",
+    "versionId": "b7ad5b67-efc8-416a-a109-94f2371eab16",
+    "workflowId": "HbkRL9T7DsoZr3wm",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "t_a3",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "keepOnlySet": true,
+          "values": {
+            "string": [
+              {
+                "name": "chat_id",
+                "value": "={{ $json.message.chat.id }}"
+              },
+              {
+                "name": "msg_id",
+                "value": "={{ $json.message.message_id }}"
+              },
+              {
+                "name": "raw_text",
+                "value": "={{ $json.message.text }}"
+              }
+            ]
+          }
+        },
+        "id": "s_a3",
+        "name": "Paso_1_Params",
+        "type": "n8n-nodes-base.set",
+        "position": [
+          200,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const text = $('Paso_1_Params').item.json.raw_text;\nconst match = text.match(/^\\/accion\\s+(alta|media|baja)\\s+(.*)/i);\nlet prioridad = 'media';\nlet titulo = text.replace(/^\\/accion\\s*/i, '');\nif (match) {\n  prioridad = match[1].toLowerCase();\n  titulo = match[2];\n}\nreturn { json: { prioridad: prioridad, titulo: titulo } };"
+        },
+        "id": "c_a3",
+        "name": "Parsear_Prioridad",
+        "type": "n8n-nodes-base.code",
+        "position": [
+          400,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO core.tasks (titulo, prioridad, asignado_a, estado, origin_msg_id) VALUES ($1, $2, 'ceo', 'todo', $3) ON CONFLICT (origin_msg_id) DO NOTHING RETURNING id, prioridad;",
+          "options": {
+            "queryParameters": "={{ $('Parsear_Prioridad').item.json.titulo }}, {{ $('Parsear_Prioridad').item.json.prioridad }}, {{ $('Paso_1_Params').item.json.msg_id }}"
+          }
+        },
+        "id": "db_a3",
+        "name": "Insert_BD_Accion",
+        "type": "n8n-nodes-base.postgres",
+        "position": [
+          600,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json[0]?.id }}",
+                "operation": "isNotEmpty"
+              }
+            ]
+          }
+        },
+        "id": "if_a3",
+        "name": "If_Inserted",
+        "type": "n8n-nodes-base.if",
+        "position": [
+          800,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Paso_1_Params').item.json.chat_id }}",
+          "text": "=\u26a1 **Acci\u00f3n R\u00e1pida Creada (#{{ $('Insert_BD_Accion').item.json[0].id }})**\\n*\"{{ $('Parsear_Prioridad').item.json.titulo }}\"*\\n\ud83d\udd25 Prioridad: `{{ $('Insert_BD_Accion').item.json[0].prioridad }}`"
+        },
+        "id": "tg_a3",
+        "name": "Telegram_Confirm",
+        "type": "n8n-nodes-base.telegram",
+        "position": [
+          1000,
+          -100
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "MU4yoPrZzzfRHbHb",
+            "name": "Telegram_Bot"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Paso_1_Params",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Paso_1_Params": {
+        "main": [
+          [
+            {
+              "node": "Parsear_Prioridad",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parsear_Prioridad": {
+        "main": [
+          [
+            {
+              "node": "Insert_BD_Accion",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert_BD_Accion": {
+        "main": [
+          [
+            {
+              "node": "If_Inserted",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If_Inserted": {
+        "main": [
+          [
+            {
+              "node": "Telegram_Confirm",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-28T15:03:55.041Z",
+        "id": 2,
+        "workflowId": "HbkRL9T7DsoZr3wm",
+        "versionId": "b7ad5b67-efc8-416a-a109-94f2371eab16",
+        "event": "activated",
+        "userId": null
+      }
+    ]
+  }
+}
