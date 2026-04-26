@@ -12,3 +12,6 @@ credentials.json
 auth_token.txt
 temp/
 workflows/*.json.bak
+
+# Playwright MCP session artifacts (snapshots, console logs)
+.playwright-mcp/
