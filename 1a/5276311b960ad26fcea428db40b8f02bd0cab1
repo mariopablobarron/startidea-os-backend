@@ -1,0 +1,32 @@
+tests/test_n8n_security.py
+  s_5cc4671b80d79c::t_83a5a9646169cb 1-71
+deploy_n8n.py
+  s_5cc4671b80d79c::t_83a5a9646169cb 1-4,6-160,163-164
+README.md
+  s_5cc4671b80d79c::t_83a5a9646169cb 39-56
+n8n_config.py
+  s_5cc4671b80d79c::t_83a5a9646169cb 1-60
+.env.example
+  s_5cc4671b80d79c::t_83a5a9646169cb 1-5
+.gitignore
+  s_5cc4671b80d79c::t_8647ebd318418e 6-7
+  s_5cc4671b80d79c::t_83a5a9646169cb 4
+.github/workflows/security-tests.yml
+  s_5cc4671b80d79c::t_83a5a9646169cb 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "1a5276311b960ad26fcea428db40b8f02bd0cab1",
+  "prompts": {},
+  "sessions": {
+    "s_5cc4671b80d79c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a026e9-cdb5-7833-a5ac-183a923ec421",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mariopablobarron <mariopablobarron@users.noreply.github.com>"
+    }
+  }
+}
